@@ -10,6 +10,21 @@
       },
       "appServiceSku": {
         "value": "${AZURE_APP_SERVICE_SKU=F1}"
+      },
+      "useApplicationInsights": {
+        "value": "${AZURE_USE_APPLICATION_INSIGHTS=true}"
+      },
+      "applicationInsightsName": {
+        "value": "${AZURE_APPLICATION_INSIGHTS}"
+      },
+      "applicationInsightsDashboardName": {
+        "value": "${AZURE_APPLICATION_INSIGHTS_DASHBOARD}"
+      },
+      "logAnalyticsName": {
+        "value": "${AZURE_LOG_ANALYTICS}"
+      },
+      "publicNetworkAccess": {
+        "value": "${AZURE_PUBLIC_NETWORK_ACCESS=Enabled}"
       }
     }
   }

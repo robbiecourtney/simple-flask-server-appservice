@@ -12,8 +12,19 @@ param location string
 @description('SKU to use for App Service Plan')
 param appServiceSku string
 
+param applicationInsightsDashboardName string = '' // Set in main.parameters.json
+param applicationInsightsName string = '' // Set in main.parameters.json
+param logAnalyticsName string = '' // Set in main.parameters.json
+@description('Use Application Insights for monitoring and performance tracing')
+param useApplicationInsights bool = true
+
+@description('Public network access value for all deployed resources')
+@allowed(['Enabled', 'Disabled'])
+param publicNetworkAccess string = 'Enabled'
+
 var resourceToken = toLower(uniqueString(subscription().id, name, location))
 var tags = { 'azd-env-name': name }
+var abbrs = loadJsonContent('abbreviations.json')
 
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: '${name}-rg'
@@ -51,6 +62,35 @@ module appServicePlan 'core/host/appserviceplan.bicep' = {
       name: appServiceSku
     }
     reserved: true
+  }
+}
+
+// Monitor application with Azure Monitor
+module monitoring 'core/monitor/monitoring.bicep' = if (useApplicationInsights) {
+  name: 'monitoring'
+  scope: resourceGroup
+  params: {
+    location: location
+    tags: tags
+    applicationInsightsName: !empty(applicationInsightsName)
+      ? applicationInsightsName
+      : '${abbrs.insightsComponents}${resourceToken}'
+    logAnalyticsName: !empty(logAnalyticsName)
+      ? logAnalyticsName
+      : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
+    publicNetworkAccess: publicNetworkAccess
+  }
+}
+
+module applicationInsightsDashboard 'backend-dashboard.bicep' = if (useApplicationInsights) {
+  name: 'application-insights-dashboard'
+  scope: resourceGroup
+  params: {
+    name: !empty(applicationInsightsDashboardName)
+      ? applicationInsightsDashboardName
+      : '${abbrs.portalDashboards}${resourceToken}'
+    location: location
+    applicationInsightsName: useApplicationInsights ? monitoring.outputs.applicationInsightsName : ''
   }
 }
 

@@ -1,1 +1,4 @@
-Flask==3.0.3
+Quart==0.19.9
+gunicorn==23.0.0
+uvicorn==0.32.1
+azure-monitor-opentelemetry==1.6.4
