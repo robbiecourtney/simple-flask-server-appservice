@@ -1,8 +1,16 @@
 from quart import Quart, Blueprint, render_template, request
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry import trace
+import os
+import logging
 
-configure_azure_monitor()
+logger = logging.getLogger('app_log')
+logger.setLevel(logging.DEBUG)
+console = logging.StreamHandler()
+console.setLevel(level=logging.DEBUG)
+formatter = logging.Formatter('%(levelname)s : %(message)s')
+console.setFormatter(formatter)
+logger.addHandler(console)
 
 bp = Blueprint("routes", __name__, static_folder="static")
 
@@ -25,6 +33,12 @@ app = Quart(
   static_folder='static'
 )
 app.register_blueprint(bp)
+
+if os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"):
+    logger.info("APPLICATIONINSIGHTS_CONNECTION_STRING is set, enabling Azure Monitor")
+    configure_azure_monitor()
+else:
+   logger.info("APPLICATIONINSIGHTS_CONNECTION_STRING is NOT set, NOT enabling Azure Monitor")
 
 if __name__ == '__main__':
   # Run the quart app

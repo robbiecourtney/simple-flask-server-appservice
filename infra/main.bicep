@@ -26,6 +26,12 @@ var resourceToken = toLower(uniqueString(subscription().id, name, location))
 var tags = { 'azd-env-name': name }
 var abbrs = loadJsonContent('abbreviations.json')
 
+var appEnvVariables = {
+  APPLICATIONINSIGHTS_CONNECTION_STRING: useApplicationInsights
+  ? monitoring.outputs.applicationInsightsConnectionString
+  : ''
+}
+
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: '${name}-rg'
   location: location
@@ -48,6 +54,7 @@ module web 'core/host/appservice.bicep' = {
     ftpsState: 'Disabled'
     use32BitWorkerProcess: appServiceSku == 'F1'
     alwaysOn: appServiceSku != 'F1'
+    appSettings: appEnvVariables
   }
 }
 
